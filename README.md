@@ -192,9 +192,3 @@ CORS_ALLOWED_ORIGINS = [
 ```
 
 and just changed it to `https` instead of `http`
-
-also in frontend project changed the base url to `https://nematdoust.osdl.ir` instead of `http`
-
-So Frontend calls APIs and Backend correctly accepts them without CORS error. 
-
-
