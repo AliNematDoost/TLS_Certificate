@@ -179,11 +179,11 @@ After these changes, I checked the log of Traefik pod and it proved that traefik
 2026-09-10T13:20:43Z INF Server responded with a certificate. domains=nematdoust.osdl.ir lib=lego
 ```
 
-## Some changes needed in Backend and Frontend services to prevent CORS error
+## Some changes needed in Backend and Frontend services
 
-When some origin wants to send request to another origin which is not served on the same host, browser restricts its request because of security reasons. For preventing this, the receiver of request should place CORS header in response which indicates that the sender is allowed to send request and receive its response. 
+Base URL is changed to `https://nematdoust.osdl.ir` in Frontend. 
 
-For that purpose, I have already added a new config to django settings:
+I have already added a new config to django settings:
 ```
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
