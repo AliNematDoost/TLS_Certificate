@@ -1,6 +1,44 @@
 # TLS_Certificate
 In this repository I am going to explain what I have done to get TLS Certificate for my domain. 
 
+## Check if Traefik is accepting external traffic 
+
+First of all we should make sure that our domain resolves to the public IP of cluster and request to that reaches Traefik.
+
+```
+dig nematdoust.osdl.ir
+
+; <<>> DiG 9.18.39-0ubuntu0.22.04.6-Ubuntu <<>> nematdoust.osdl.ir
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 53629
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 65494
+;; QUESTION SECTION:
+;nematdoust.osdl.ir.		IN	A
+
+;; ANSWER SECTION:
+nematdoust.osdl.ir.	300	IN	A	193.176.242.20
+
+;; Query time: 87 msec
+;; SERVER: 127.0.0.53#53(127.0.0.53) (UDP)
+;; WHEN: Thu Sep 10 20:08:04 +0330 2026
+;; MSG SIZE  rcvd: 63
+
+```
+This proves that domain resolves to IP of master node of cluster. and :
+```
+k get svc -n kube-system
+NAME             TYPE           CLUSTER-IP     EXTERNAL-IP                  PORT(S)                      AGE
+kube-dns         ClusterIP      10.43.0.10     <none>                       53/UDP,53/TCP,9153/TCP       32d
+metrics-server   ClusterIP      10.43.12.19    <none>                       443/TCP                      32d
+traefik          LoadBalancer   10.43.186.40   193.176.242.20,37.32.15.33   80:30532/TCP,443:32414/TCP   32d
+```
+
+Proves that requests to that IP will reach Traefik LoadBalancer service. So when Let's encrypt executes the challenge on `http://nematdoust.osdl.ir/.well-known/acme-challenge/...` the request will reach traefik ( because its listening on port 80 ) 
+
 ## Configure helm values
 
 The first step was to configure Traefik to use Let's Encrypt through its built-in ACME support.
@@ -35,7 +73,7 @@ Let's Encrypt validates domain ownership by requesting a special HTTP challenge 
 
 Traefik handles this challenge automatically.
 
-4. The ACME data must survive Traefik pod restarts, so /data was made persistent.
+4. The ACME data must survive Traefik pod restarts, so /data was made persistent. So certificate, private key and ... will be stored in /data/acme.json on Traefik container's file system which is mounted by PVC and will survive if pod restarts.
 
 
 After that, the Traefik release could be upgraded using the new values:
